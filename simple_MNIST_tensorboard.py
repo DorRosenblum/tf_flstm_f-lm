@@ -199,7 +199,10 @@ def main(_):
   print('main begin!')
 
   if tf.gfile.Exists(FLAGS.log_dir):
+    print('exists log dir, so try deleting it')
     tf.gfile.DeleteRecursively(FLAGS.log_dir)
+
+  print('make logs dir')
   tf.gfile.MakeDirs(FLAGS.log_dir)
   train()
   print('main done!')
@@ -233,7 +236,7 @@ if __name__ == '__main__':
   parser.add_argument(
       '--data_dir',
       type=str,
-      default="/Users/dor_r/PycharmProjects/tf_ex1/tmp/tensorflow/mnist/input_data",
+      default="tmp/tensorflow/mnist/input_data",
       help='Directory for storing input data')
   # default=os.path.join(os.getenv('TEST_TMPDIR', '/tmp'),
   #                     'tensorflow/mnist/input_data'),
@@ -241,15 +244,15 @@ if __name__ == '__main__':
   parser.add_argument(
       '--log_dir',
       type=str,
-      default="/Users/dor_r/PycharmProjects/tf_ex1/tmp/tensorflow/mnist/logs/mnist_with_summaries",
+      default="tmp/tensorflow/mnist/logs/mnist_with_summaries",
       help='Summaries log directory')
   # default=os.path.join(os.getenv('TEST_TMPDIR', '/tmp'),
   #                     'tensorflow/mnist/logs/mnist_with_summaries'),
 
   print("getenv=%s , os.path.join=%s" % (os.getenv('TEST_TMPDIR', '/tmp')  , os.path.join('A','B') ) )
-  print("default data_dir=%s" % (os.path.join(os.getenv('TEST_TMPDIR', '/tmp'),
+  print("default data_dir=%s" % (os.path.join(os.getenv('TEST_TMPDIR', 'tmp'),
                                               'tensorflow/mnist/input_data')))
-  print("default log_dir=%s" % (os.path.join(os.getenv('TEST_TMPDIR', '/tmp'),
+  print("default log_dir=%s" % (os.path.join(os.getenv('TEST_TMPDIR', 'tmp'),
                                      'tensorflow/mnist/logs/mnist_with_summaries')))
 
   FLAGS, unparsed = parser.parse_known_args()
