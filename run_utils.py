@@ -11,7 +11,7 @@ from common import CheckpointLoader
 
 def run_train(dataset, hps, logdir, ps_device, task=0, master=""):
     with tf.variable_scope("model"):
-        print("~~~~~>>Almog&Dor debug: loading LM model")
+        print('\x1b[6;30;42m' + '~~~~~>>Almog&Dor debug: loading LM model' + '\x1b[0m')
         model = LM(hps, "train", ps_device)
     stime = time.time()
     print("Current time: %s" % stime)
@@ -26,7 +26,7 @@ def run_train(dataset, hps, logdir, ps_device, task=0, master=""):
         print("%s %s %s %s" % (v.name, v.get_shape(), v.dtype, v.device))
 
     sv = tf.train.Supervisor(is_chief=(task == 0),
-                             logdir=logdir,
+                             logdir=logdir, # logdir=None, # logdir=logdir,
                              summary_op=None,  # Automatic summaries don't work with placeholders.
                              global_step=model.global_step,
                              save_summaries_secs=60*hps.save_summary_every_min,
@@ -38,7 +38,9 @@ def run_train(dataset, hps, logdir, ps_device, task=0, master=""):
     #                        intra_op_parallelism_threads=2,
     #                        inter_op_parallelism_threads=20)
     config = tf.ConfigProto(allow_soft_placement=True)
-    with sv.managed_session(master, config=config) as sess:
+    close_summary_writer = False
+    with sv.managed_session(master, config=config, start_standard_services=True, close_summary_writer=False) as sess:
+
         # Slowly increase the number of workers during beginning of the training.
         #while not sv.should_stop() and (time.time() - stime) < hps.max_time:
         #    step = int(sess.run(model.global_step))
@@ -48,14 +50,23 @@ def run_train(dataset, hps, logdir, ps_device, task=0, master=""):
         #    else:
         #        print("Current step is %d. Waiting until: %d" % (step, waiting_until_step))
         #    time.sleep(20.0)
-	
 
         local_step = 0
         prev_global_step = sess.run(model.global_step)
         cur_global_step = 0
         prev_time = time.time()
         data_iterator = dataset.iterate_forever(hps.batch_size * hps.num_gpus, hps.num_steps)
+
+
+
+        print('\x1b[6;30;42m' + '~~~~~~>>Almog&Dor debug: before looping model, sv.save_path=%s , sv.should_stop()=%d, (time.time() - stime)=%.2fs, hps.max_time=%.2fs ' %(sv.save_path, sv.should_stop(), (time.time() - stime), hps.max_time) +  '\x1b[0m')
+
         while not sv.should_stop() and (time.time() - stime) < hps.max_time:
+            if (int(time.time()) - int(stime)) % 10 == 0:
+                print('\x1b[6;30;42m' + '~~~~~>>Almog&Dor debug: While In looping model, sv.should_stop()=%d, (time.time() - stime)=%.2fs, hps.max_time=%.2fs ' %(sv.should_stop(), (time.time() - stime), hps.max_time) + '\x1b[0m')
+
+
+
             fetches = [model.global_step, model.loss, model.train_op]
             # Chief worker computes summaries every 100 steps.
             should_compute_summary = (task == 0  and local_step % 100 == 0)
@@ -86,7 +97,8 @@ def run_train(dataset, hps, logdir, ps_device, task=0, master=""):
 
             local_step += 1
             if should_compute_summary:
-                sv.summary_computed(sess, fetched[-1])
+                print('\x1b[6;30;42m' + '~~~~~~~~~~>>Almog&Dor debug: should_compute_summary!!! BUT WE DROPED THIS MODE TO SAVE MEMORY SPACE sv.should_stop()=%d, (time.time() - stime)=%.2fs, hps.max_time=%.2fs ' %(sv.should_stop(), (time.time() - stime), hps.max_time) + '\x1b[0m')
+                #sv.summary_computed(sess, fetched[-1]) #28GB is a bit too much
 
             if local_step < 10 or local_step % 20 == 0:
                 cur_time = time.time()
@@ -97,8 +109,13 @@ def run_train(dataset, hps, logdir, ps_device, task=0, master=""):
                     cur_global_step, cur_time - prev_time, wps, fetched[1]))
                 prev_time = cur_time
         #save last model
-        sv._saver.save(sess, sv.save_path, cur_global_step)
-    sv.stop()
+        print('\x1b[6;30;45m' + '~~~~~~~~~~>>Almog&Dor debug: Supervisor Begin Save after training period  BUT WE DROPED THIS MODE TO SAVE MEMORY SPACE  ' + '\x1b[0m')
+        #sv._saver.save(sess, sv.save_path, cur_global_step)
+        print('\x1b[6;30;44m' + '~~~~~~~~~~>>Almog&Dor debug: Supervisor DONE Save after training period' + '\x1b[0m')
+
+    # close sv without saving checkpoint state of 14GB!!!!
+    sv.stop(None, close_summary_writer)
+
 
 
 def run_eval(dataset, hps, logdir, mode, num_eval_steps):

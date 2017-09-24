@@ -28,9 +28,7 @@ def main(_):
     print (hps)
     print ('**************************')
 
-    print('\x1b[6;30;42m' +
-          '~~~~~>>Almog&Dor debug: our training DataSetDir=%s  , LogDir=%s' % (FLAGS.datadir,FLAGS.logdir)
-          + '\x1b[0m')
+    print('\x1b[6;30;42m' + '~~~~~>>Almog&Dor debug: our training DataSetDir=%s  , LogDir=%s' % (FLAGS.datadir,FLAGS.logdir) + '\x1b[0m')
 
     vocab = Vocabulary.from_file(os.path.join(FLAGS.datadir, "1b_word_vocab.txt"))
 
@@ -40,11 +38,14 @@ def main(_):
                                               "training-monolingual.tokenized.shuffled/*"))
 
         trainlogdir=(FLAGS.logdir+str("/")+"train")#(FLAGS.logdir+str("\\")+"train")#os.path.join(FLAGS.logdir, "train")
-        print("~~~~~>>Almog&Dor debug: train log dir=%s" % (trainlogdir))
+        print('\x1b[6;30;42m' + '~~~~~>>Almog&Dor debug: train log dir=%s' % (trainlogdir) + '\x1b[0m')
 
         run_train(dataset, hps, trainlogdir, ps_device="/gpu:0")
-        print("~~~~~>>Almog&Dor debug: finished run_train")
+        print('\x1b[6;30;41m' + '~~>>Almog&Dor debug: Finished run_train !!!!!!!!!!!' + '\x1b[0m')
     elif FLAGS.mode.startswith("eval_"):
+        print('\x1b[6;30;42m' + '~~~~~>>Almog&Dor debug: eval mode' + '\x1b[0m')
+
+
         if FLAGS.mode.startswith("eval_train"):
             data_dir = os.path.join(FLAGS.datadir, "training-monolingual.tokenized.shuffled/*")
         elif FLAGS.mode.startswith("eval_full"):
@@ -53,7 +54,6 @@ def main(_):
             data_dir = os.path.join(FLAGS.datadir, "heldout-monolingual.tokenized.shuffled/news.en.heldout-00000-of-00050")
         dataset = Dataset(vocab, data_dir, deterministic=True)
         run_eval(dataset, hps, FLAGS.logdir, FLAGS.mode, FLAGS.eval_steps)
-
 
 if __name__ == "__main__":
     tf.app.run()
