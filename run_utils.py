@@ -38,7 +38,7 @@ def run_train(dataset, hps, logdir, ps_device, task=0, master=""):
     #                        intra_op_parallelism_threads=2,
     #                        inter_op_parallelism_threads=20)
     config = tf.ConfigProto(allow_soft_placement=True)
-    close_summary_writer = False
+    close_summary_writer = True
     with sv.managed_session(master, config=config, start_standard_services=True, close_summary_writer=False) as sess:
 
         # Slowly increase the number of workers during beginning of the training.
@@ -119,6 +119,8 @@ def run_train(dataset, hps, logdir, ps_device, task=0, master=""):
 
 
 def run_eval(dataset, hps, logdir, mode, num_eval_steps):
+    print('\x1b[6;30;43m' + '~~~~~~>>Almog&Dor debug: run_eval logdir=%s ' % (logdir) + '\x1b[0m')
+
     with tf.variable_scope("model"):
         hps.num_sampled = 0  # Always using full softmax at evaluation.
         hps.keep_prob = 1.0
@@ -138,10 +140,15 @@ def run_eval(dataset, hps, logdir, mode, num_eval_steps):
     config = tf.ConfigProto(allow_soft_placement=True)
     sess = tf.Session(config=config)
     sw = tf.summary.FileWriter(logdir + "/" + mode, sess.graph)
+    print('\x1b[6;30;43m' + '~~~~~~>>Almog&Dor debug: run_eval tf.summary.FileWriter=%s ' % (logdir + "/" + mode) + '\x1b[0m')
+
     ckpt_loader = CheckpointLoader(saver, model.global_step, logdir + "/train")
+    print('\x1b[6;30;43m' + '~~~~~~>>Almog&Dor debug: run_eval ckpt_loader=%s ' % (ckpt_loader.logdir) + '\x1b[0m')
 
     with sess.as_default():
         while ckpt_loader.load_checkpoint():
+            print('\x1b[6;30;43m' + '~~~~~~~~~>>Almog&Dor debug: eval load_checkpoint chunk done! ' + '\x1b[0m')
+
             global_step = ckpt_loader.last_global_step
             data_iterator = dataset.iterate_once(hps.batch_size * hps.num_gpus, hps.num_steps)
             #tf.initialize_local_variables().run()
