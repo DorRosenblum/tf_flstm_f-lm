@@ -146,8 +146,10 @@ def run_eval(dataset, hps, logdir, mode, num_eval_steps):
     print('\x1b[6;30;43m' + '~~~~~~>>Almog&Dor debug: run_eval ckpt_loader=%s ' % (ckpt_loader.logdir) + '\x1b[0m')
 
     with sess.as_default():
+        print('\x1b[6;30;43m' + '~~~~~~~~~>>Almog&Dor debug: run_eval sess.as_default iteration' + '\x1b[0m')
+
         while ckpt_loader.load_checkpoint():
-            print('\x1b[6;30;43m' + '~~~~~~~~~>>Almog&Dor debug: eval load_checkpoint chunk done! ' + '\x1b[0m')
+            print('\x1b[6;30;43m' + '~~~~~~~~~~~>>Almog&Dor debug: eval load_checkpoint chunk Loader done! ' + '\x1b[0m')
 
             global_step = ckpt_loader.last_global_step
             data_iterator = dataset.iterate_once(hps.batch_size * hps.num_gpus, hps.num_steps)
