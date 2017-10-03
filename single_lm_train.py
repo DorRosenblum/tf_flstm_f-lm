@@ -54,6 +54,8 @@ def main(_):
             data_dir = os.path.join(FLAGS.datadir, "heldout-monolingual.tokenized.shuffled/news.en.heldout-00000-of-00050")
         dataset = Dataset(vocab, data_dir, deterministic=True)
         run_eval(dataset, hps, FLAGS.logdir, FLAGS.mode, FLAGS.eval_steps)
+        print('\x1b[6;30;41m' + '~~>>Almog&Dor debug: Finished run_eval !!!!!!!!!!!' + '\x1b[0m')
+
 
 if __name__ == "__main__":
     tf.app.run()

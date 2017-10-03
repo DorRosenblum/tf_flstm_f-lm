@@ -38,7 +38,7 @@ def run_train(dataset, hps, logdir, ps_device, task=0, master=""):
     #                        intra_op_parallelism_threads=2,
     #                        inter_op_parallelism_threads=20)
     config = tf.ConfigProto(allow_soft_placement=True)
-    close_summary_writer = True
+    close_summary_writer = False
     with sv.managed_session(master, config=config, start_standard_services=True, close_summary_writer=False) as sess:
 
         # Slowly increase the number of workers during beginning of the training.
@@ -109,11 +109,11 @@ def run_train(dataset, hps, logdir, ps_device, task=0, master=""):
                     cur_global_step, cur_time - prev_time, wps, fetched[1]))
                 prev_time = cur_time
         #save last model
-        print('\x1b[6;30;45m' + '~~~~~~~~~~>>Almog&Dor debug: Supervisor Begin Save after training period  BUT WE DROPED THIS MODE TO SAVE MEMORY SPACE  ' + '\x1b[0m')
-        #sv._saver.save(sess, sv.save_path, cur_global_step)
+        print('\x1b[6;30;45m' + '~~~~~~~~~~>>Almog&Dor debug: Supervisor Begin Save after training period' + '\x1b[0m')
+        sv._saver.save(sess, sv.save_path, cur_global_step)
         print('\x1b[6;30;44m' + '~~~~~~~~~~>>Almog&Dor debug: Supervisor DONE Save after training period' + '\x1b[0m')
 
-    # close sv without saving checkpoint state of 14GB!!!!
+    # close sv  with close summery flag 
     sv.stop(None, close_summary_writer)
 
 
@@ -149,21 +149,30 @@ def run_eval(dataset, hps, logdir, mode, num_eval_steps):
         print('\x1b[6;30;43m' + '~~~~~~~~~>>Almog&Dor debug: run_eval sess.as_default iteration' + '\x1b[0m')
 
         while ckpt_loader.load_checkpoint():
-            print('\x1b[6;30;43m' + '~~~~~~~~~~~>>Almog&Dor debug: eval load_checkpoint chunk Loader done! ' + '\x1b[0m')
+            print('\x1b[6;30;42m' + '~~~~~~~~~~~>>Almog&Dor debug: eval load_checkpoint chunk Loader done! ' + '\x1b[0m')
 
             global_step = ckpt_loader.last_global_step
             data_iterator = dataset.iterate_once(hps.batch_size * hps.num_gpus, hps.num_steps)
+
+            print('\x1b[6;30;43m' + '~~~~~~~~~~~>>Almog&Dor debub: eval run local variables initalizer' + '\x1b[0m')
+
             #tf.initialize_local_variables().run()
             tf.local_variables_initializer().run()
             loss_nom = 0.0
             loss_den = 0.0
+
+            print('\x1b[6;30;43m' + '~~~~~~~~~~~>>Almog&Dor debub: eval run for loop of enumerated data iterator' + '\x1b[0m')
             #for i, (x, y, w) in enumerate(data_iterator):
             for i, (x, y) in enumerate(data_iterator):
                 if i >= num_eval_steps and mode!="eval_full":
                     break
 
+                #print('\x1b[6;30;43m' + '~~~~~~~~~~~~~~~~~~>>Almog&Dor debug: iter is in range, will now calc loss' + '\x1b[0m')
                 #loss = sess.run(model.loss, {model.x: x, model.y: y, model.w: w})
                 loss = sess.run(model.loss, {model.x: x, model.y: y})
+                #print('\x1b[6;30;43m' + '~~~~~~~~~~~~~~~>>Almog&Dor debub: eval done with calc of loss=%d' %(loss) + '\x1b[0m')
+
+
                 loss_nom += loss
                 loss_den += 1 # ???
                 #loss_den += w.mean()
@@ -171,6 +180,7 @@ def run_eval(dataset, hps, logdir, mode, num_eval_steps):
                 sys.stdout.write("%d: %.3f (%.3f) ... " % (i, loss, np.exp(loss)))
                 sys.stdout.flush()
             sys.stdout.write("\n")
+
 
             log_perplexity = loss_nom / loss_den
             print("Results at %d: log_perplexity = %.3f perplexity = %.3f" % (
@@ -183,3 +193,9 @@ def run_eval(dataset, hps, logdir, mode, num_eval_steps):
             sw.flush()
             if mode == "eval_full":
                 break #we don't need to wait for other checkpoints in this mode
+
+        print('\x1b[6;30;45m' + '~~~~~~~~~>>Almog&Dor debug: run_eval END OF WHILE loader loop ' + '\x1b[0m')
+
+
+    print('\x1b[6;30;44m' + '~~~~~~>>Almog&Dor debug: run_eval END OF WHILE session loop ' + '\x1b[0m')
+

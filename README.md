@@ -87,3 +87,21 @@ Forked code and GLSTM/FLSTM cells: okuchaiev@nvidia.com.
 ## References
 * [1] [Factorization tricks for LSTM networks](https://openreview.net/forum?id=ByxWXyNFg&noteId=ByxWXyNFg), ICLR 2017 workshop.
 * [2] [Exploring the Limits of Language Modeling](https://arxiv.org/abs/1602.02410)
+
+
+
+## Almog and Dor additions:
+-adapting to ft ver 1.3. and python 3.
+-adding debug plots from original dataset
+
+use the follwing cmds:
+export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
+
+du -hs * | sort -h  	## get the size of files in dir
+rm -rf LogLM/ 			## clear log files if we need a clean start (about 28GB)
+du -hs * | sort -h  	## get the size of files in dir
+
+python3 single_lm_train.py     					--logdir=LogLM/FGLSTM/BIGLSTM 										--num_gpus=1 --datadir=1-billion-word-language-modeling-benchmark-master 	--hpconfig do_summaries=False,run_profiler=False,float16_rnn=False,max_time=120,num_steps=20,num_shards=8,num_layers=2,learning_rate=0.2,max_grad_norm=1,keep_prob=0.9,emb_size=1024,projected_size=1024,state_size=4096,num_sampled=4096,batch_size=128 
+python3 single_lm_train.py     --mode=eval_full --logdir=/home/gpgpu16/tf_flstm_f-lm/LogLM/FGLSTM/BIGLSTM 			--num_gpus=1 --datadir=1-billion-word-language-modeling-benchmark-master 	--hpconfig do_summaries=False,run_profiler=False,float16_rnn=False,max_time=120,num_steps=20,num_shards=8,num_layers=2,learning_rate=0.2,max_grad_norm=1,keep_prob=0.9,emb_size=1024,projected_size=1024,state_size=4096,num_sampled=4096,batch_size=2
+
+
