@@ -9,7 +9,8 @@ from language_model import LM
 from run_utils import run_train, run_eval
 
 tf.flags.DEFINE_string("logdir", "lm1b", "Logging directory.")
-tf.flags.DEFINE_string("datadir", "1-billion-word-language-modeling-benchmark-master", "DataSet directory.")
+#tf.flags.DEFINE_string("datadir", "1-billion-word-language-modeling-benchmark-master", "DataSet directory.")
+tf.flags.DEFINE_string("datadir","ptb","DataSet directory.")
 tf.flags.DEFINE_string("mode", "train", "Whether to run 'train' or 'eval' model.")
 tf.flags.DEFINE_string("hpconfig", "", "Overrides default hyper-parameters.")
 tf.flags.DEFINE_integer("num_gpus", 0, "Number of GPUs used.")
@@ -30,12 +31,15 @@ def main(_):
 
     print('\x1b[6;30;42m' + '~~~~~>>Almog&Dor debug: our training DataSetDir=%s  , LogDir=%s' % (FLAGS.datadir,FLAGS.logdir) + '\x1b[0m')
 
-    vocab = Vocabulary.from_file(os.path.join(FLAGS.datadir, "1b_word_vocab.txt"))
+    #vocab = Vocabulary.from_file(os.path.join(FLAGS.datadir, "1b_word_vocab.txt"))
+    vocab = Vocabulary.from_file(os.path.join(FLAGS.datadir, "vocabulary.txt"))
 
     if FLAGS.mode == "train":
         #hps.batch_size = 256
+        # dataset = Dataset(vocab, os.path.join(FLAGS.datadir,
+        #                                       "training-monolingual.tokenized.shuffled/*"))
         dataset = Dataset(vocab, os.path.join(FLAGS.datadir,
-                                              "training-monolingual.tokenized.shuffled/*"))
+                                              "ptb.test.txt"))
 
         trainlogdir=(FLAGS.logdir+str("/")+"train")#(FLAGS.logdir+str("\\")+"train")#os.path.join(FLAGS.logdir, "train")
         print('\x1b[6;30;42m' + '~~~~~>>Almog&Dor debug: train log dir=%s' % (trainlogdir) + '\x1b[0m')
