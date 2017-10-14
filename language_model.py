@@ -215,7 +215,7 @@ class LM(object):
             keep_prob=0.9,
             optimizer=0,
 
-            vocab_size=9999,
+            vocab_size=10000,
             emb_size=128,
             state_size=2048,
             projected_size=128,

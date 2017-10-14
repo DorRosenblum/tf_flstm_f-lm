@@ -43,6 +43,10 @@ def pre_process(train_input_path,validation_input_path,test_input_path, output_p
             output_line = str(key) + ' ' + str(value) +'\n'
             output_file.write(output_line)
 
+        # add the '<S>' artificial keyword (needed for the network to separate between sentences
+        output_line = '<S> 1'
+        output_file.write(output_line)
+
     end_time = timer()
 
     print('\n##################################################################')

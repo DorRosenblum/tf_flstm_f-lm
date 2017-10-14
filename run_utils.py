@@ -65,8 +65,6 @@ def run_train(dataset, hps, logdir, ps_device, task=0, master=""):
             if (int(time.time()) - int(stime)) % 10 == 0:
                 print('\x1b[6;30;42m' + '~~~~~>>Almog&Dor debug: While In looping model, sv.should_stop()=%d, (time.time() - stime)=%.2fs, hps.max_time=%.2fs ' %(sv.should_stop(), (time.time() - stime), hps.max_time) + '\x1b[0m')
 
-
-
             fetches = [model.global_step, model.loss, model.train_op]
             # Chief worker computes summaries every 100 steps.
             should_compute_summary = (task == 0  and local_step % 100 == 0)
