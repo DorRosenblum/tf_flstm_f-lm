@@ -90,6 +90,7 @@ class Dataset(object):
                 yield sentence
 
     def _iterate(self, sentences, batch_size, num_steps):
+        print("Almog: sentences: ",sentences)
         streams = [None] * batch_size
         x = np.zeros([batch_size, num_steps], np.int32)
         y = np.zeros([batch_size, num_steps], np.int32)
