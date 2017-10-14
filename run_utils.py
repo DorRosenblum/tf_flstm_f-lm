@@ -156,7 +156,7 @@ def run_eval(dataset, hps, logdir, mode, num_eval_steps):
             loss_nom = 0.0
             loss_den = 0.0
 
-            print_debug('eval run for loop of enumerated data iterator')
+            print_debug('eval run for loop of enumerated data iterator: '+data_iterator)
             #for i, (x, y, w) in enumerate(data_iterator):
             for i, (x, y) in enumerate(data_iterator):
                 if i >= num_eval_steps and mode!="eval_full":
