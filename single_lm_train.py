@@ -39,7 +39,7 @@ def main(_):
         # dataset = Dataset(vocab, os.path.join(FLAGS.datadir,
         #                                       "training-monolingual.tokenized.shuffled/*"))
         dataset = Dataset(vocab, os.path.join(FLAGS.datadir,
-                                              "ptb.test.txt"))
+                                              "ptb.train.txt"))
 
         trainlogdir=(FLAGS.logdir+str("/")+"train")#(FLAGS.logdir+str("\\")+"train")#os.path.join(FLAGS.logdir, "train")
         print('\x1b[6;30;42m' + '~~~~~>>Almog&Dor debug: train log dir=%s' % (trainlogdir) + '\x1b[0m')
@@ -50,13 +50,14 @@ def main(_):
         print('\x1b[6;30;42m' + '~~~~~>>Almog&Dor debug: eval mode' + '\x1b[0m')
 
 
-        if FLAGS.mode.startswith("eval_train"):
-            data_dir = os.path.join(FLAGS.datadir, "training-monolingual.tokenized.shuffled/*")
-        elif FLAGS.mode.startswith("eval_full"):
-            data_dir = os.path.join(FLAGS.datadir, "heldout-monolingual.tokenized.shuffled/*")
-        else:
-            data_dir = os.path.join(FLAGS.datadir, "heldout-monolingual.tokenized.shuffled/news.en.heldout-00000-of-00050")
-        dataset = Dataset(vocab, data_dir, deterministic=True)
+        # if FLAGS.mode.startswith("eval_train"):
+        #     data_dir = os.path.join(FLAGS.datadir, "training-monolingual.tokenized.shuffled/*")
+        # elif FLAGS.mode.startswith("eval_full"):
+        #     data_dir = os.path.join(FLAGS.datadir, "heldout-monolingual.tokenized.shuffled/*")
+        # else:
+        #     data_dir = os.path.join(FLAGS.datadir, "heldout-monolingual.tokenized.shuffled/news.en.heldout-00000-of-00050")
+        dataset = Dataset(vocab, os.path.join(FLAGS.datadir,
+                                              "ptb.test.txt"), deterministic=True)
         run_eval(dataset, hps, FLAGS.logdir, FLAGS.mode, FLAGS.eval_steps)
         print('\x1b[6;30;41m' + '~~>>Almog&Dor debug: Finished run_eval !!!!!!!!!!!' + '\x1b[0m')
 
