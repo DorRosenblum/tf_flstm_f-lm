@@ -8,10 +8,13 @@ from tensorflow.python.client import timeline
 from language_model import LM
 from common import CheckpointLoader
 
+def print_debug(str):
+    if (tf.flags.FLAGS.debug_print):
+        print('\x1b[6;30;41m' + '~~>>Almog&Dor debug: ',str,'\x1b[0m')
 
 def run_train(dataset, hps, logdir, ps_device, task=0, master=""):
     with tf.variable_scope("model"):
-        print('\x1b[6;30;42m' + '~~~~~>>Almog&Dor debug: loading LM model' + '\x1b[0m')
+        print_debug('loading LM model')
         model = LM(hps, "train", ps_device)
     stime = time.time()
     print("Current time: %s" % stime)
@@ -57,13 +60,11 @@ def run_train(dataset, hps, logdir, ps_device, task=0, master=""):
         prev_time = time.time()
         data_iterator = dataset.iterate_forever(hps.batch_size * hps.num_gpus, hps.num_steps)
 
-
-
-        print('\x1b[6;30;42m' + '~~~~~~>>Almog&Dor debug: before looping model, sv.save_path=%s , sv.should_stop()=%d, (time.time() - stime)=%.2fs, hps.max_time=%.2fs ' %(sv.save_path, sv.should_stop(), (time.time() - stime), hps.max_time) +  '\x1b[0m')
+        print_debug('before looping model, sv.save_path=%s , sv.should_stop()=%d, (time.time() - stime)=%.2fs, hps.max_time=%.2fs ' %(sv.save_path, sv.should_stop(), (time.time() - stime), hps.max_time))
 
         while not sv.should_stop() and (time.time() - stime) < hps.max_time:
             if (int(time.time()) - int(stime)) % 10 == 0:
-                print('\x1b[6;30;42m' + '~~~~~>>Almog&Dor debug: While In looping model, sv.should_stop()=%d, (time.time() - stime)=%.2fs, hps.max_time=%.2fs ' %(sv.should_stop(), (time.time() - stime), hps.max_time) + '\x1b[0m')
+                print_debug('While In looping model, sv.should_stop()=%d, (time.time() - stime)=%.2fs, hps.max_time=%.2fs ' %(sv.should_stop(), (time.time() - stime), hps.max_time))
 
             fetches = [model.global_step, model.loss, model.train_op]
             # Chief worker computes summaries every 100 steps.
@@ -95,7 +96,7 @@ def run_train(dataset, hps, logdir, ps_device, task=0, master=""):
 
             local_step += 1
             if should_compute_summary:
-                print('\x1b[6;30;42m' + '~~~~~~~~~~>>Almog&Dor debug: should_compute_summary!!! BUT WE DROPED THIS MODE TO SAVE MEMORY SPACE sv.should_stop()=%d, (time.time() - stime)=%.2fs, hps.max_time=%.2fs ' %(sv.should_stop(), (time.time() - stime), hps.max_time) + '\x1b[0m')
+                print_debug('should_compute_summary!!! BUT WE DROPED THIS MODE TO SAVE MEMORY SPACE sv.should_stop()=%d, (time.time() - stime)=%.2fs, hps.max_time=%.2fs ' %(sv.should_stop(), (time.time() - stime), hps.max_time))
                 #sv.summary_computed(sess, fetched[-1]) #28GB is a bit too much
 
             if local_step < 10 or local_step % 20 == 0:
@@ -107,9 +108,9 @@ def run_train(dataset, hps, logdir, ps_device, task=0, master=""):
                     cur_global_step, cur_time - prev_time, wps, fetched[1]))
                 prev_time = cur_time
         #save last model
-        print('\x1b[6;30;45m' + '~~~~~~~~~~>>Almog&Dor debug: Supervisor Begin Save after training period' + '\x1b[0m')
+        print_debug('Supervisor Begin Save after training period')
         sv._saver.save(sess, sv.save_path, cur_global_step)
-        print('\x1b[6;30;44m' + '~~~~~~~~~~>>Almog&Dor debug: Supervisor DONE Save after training period' + '\x1b[0m')
+        print_debug('Supervisor DONE Save after training period')
 
     # close sv  with close summery flag 
     sv.stop(None, close_summary_writer)
@@ -117,7 +118,7 @@ def run_train(dataset, hps, logdir, ps_device, task=0, master=""):
 
 
 def run_eval(dataset, hps, logdir, mode, num_eval_steps):
-    print('\x1b[6;30;43m' + '~~~~~~>>Almog&Dor debug: run_eval logdir=%s ' % (logdir) + '\x1b[0m')
+    print_debug('run_eval logdir=%s ' % (logdir))
 
     with tf.variable_scope("model"):
         hps.num_sampled = 0  # Always using full softmax at evaluation.
@@ -138,37 +139,36 @@ def run_eval(dataset, hps, logdir, mode, num_eval_steps):
     config = tf.ConfigProto(allow_soft_placement=True)
     sess = tf.Session(config=config)
     sw = tf.summary.FileWriter(logdir + "/" + mode, sess.graph)
-    print('\x1b[6;30;43m' + '~~~~~~>>Almog&Dor debug: run_eval tf.summary.FileWriter=%s ' % (logdir + "/" + mode) + '\x1b[0m')
+    print_debug('run_eval tf.summary.FileWriter=%s ' % (logdir + "/" + mode))
 
     ckpt_loader = CheckpointLoader(saver, model.global_step, logdir + "/train")
-    print('\x1b[6;30;43m' + '~~~~~~>>Almog&Dor debug: run_eval ckpt_loader=%s ' % (ckpt_loader.logdir) + '\x1b[0m')
+    print_debug('run_eval ckpt_loader=%s ' % (ckpt_loader.logdir))
 
     with sess.as_default():
-        print('\x1b[6;30;43m' + '~~~~~~~~~>>Almog&Dor debug: run_eval sess.as_default iteration' + '\x1b[0m')
+        print_debug('run_eval sess.as_default iteration')
 
         while ckpt_loader.load_checkpoint():
-            print('\x1b[6;30;42m' + '~~~~~~~~~~~>>Almog&Dor debug: eval load_checkpoint chunk Loader done! ' + '\x1b[0m')
+            print_debug('eval load_checkpoint chunk Loader done!')
 
             global_step = ckpt_loader.last_global_step
             data_iterator = dataset.iterate_once(hps.batch_size * hps.num_gpus, hps.num_steps)
 
-            print('\x1b[6;30;43m' + '~~~~~~~~~~~>>Almog&Dor debub: eval run local variables initalizer' + '\x1b[0m')
+            print_debug('eval run local variables initalizer')
 
             #tf.initialize_local_variables().run()
             tf.local_variables_initializer().run()
             loss_nom = 0.0
             loss_den = 0.0
 
-            print('\x1b[6;30;43m' + '~~~~~~~~~~~>>Almog&Dor debub: eval run for loop of enumerated data iterator' + '\x1b[0m')
+            print_debug('eval run for loop of enumerated data iterator')
             #for i, (x, y, w) in enumerate(data_iterator):
             for i, (x, y) in enumerate(data_iterator):
                 if i >= num_eval_steps and mode!="eval_full":
                     break
 
-                #print('\x1b[6;30;43m' + '~~~~~~~~~~~~~~~~~~>>Almog&Dor debug: iter is in range, will now calc loss' + '\x1b[0m')
                 #loss = sess.run(model.loss, {model.x: x, model.y: y, model.w: w})
                 loss = sess.run(model.loss, {model.x: x, model.y: y})
-                #print('\x1b[6;30;43m' + '~~~~~~~~~~~~~~~>>Almog&Dor debub: eval done with calc of loss=%d' %(loss) + '\x1b[0m')
+
 
 
                 loss_nom += loss
@@ -192,8 +192,7 @@ def run_eval(dataset, hps, logdir, mode, num_eval_steps):
             if mode == "eval_full":
                 break #we don't need to wait for other checkpoints in this mode
 
-        print('\x1b[6;30;45m' + '~~~~~~~~~>>Almog&Dor debug: run_eval END OF WHILE loader loop ' + '\x1b[0m')
+        print_debug('run_eval END OF WHILE loader loop')
 
-
-    print('\x1b[6;30;44m' + '~~~~~~>>Almog&Dor debug: run_eval END OF WHILE session loop ' + '\x1b[0m')
+    print_debug('run_eval END OF WHILE session loop')
 

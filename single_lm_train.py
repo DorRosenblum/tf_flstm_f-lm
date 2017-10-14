@@ -6,7 +6,7 @@ import os
 import tensorflow as tf
 from data_utils import Vocabulary, Dataset
 from language_model import LM
-from run_utils import run_train, run_eval
+from run_utils import run_train, run_eval, print_debug
 
 tf.flags.DEFINE_string("logdir", "lm1b", "Logging directory.")
 #tf.flags.DEFINE_string("datadir", "1-billion-word-language-modeling-benchmark-master", "DataSet directory.")
@@ -15,6 +15,7 @@ tf.flags.DEFINE_string("mode", "train", "Whether to run 'train' or 'eval' model.
 tf.flags.DEFINE_string("hpconfig", "", "Overrides default hyper-parameters.")
 tf.flags.DEFINE_integer("num_gpus", 0, "Number of GPUs used.")
 tf.flags.DEFINE_integer("eval_steps", 70, "Number of eval steps.")
+tf.flags.DEFINE_bool('debug_print',False,"Is debug printing needed")
 
 FLAGS = tf.flags.FLAGS
 
@@ -29,7 +30,7 @@ def main(_):
     print (hps)
     print ('**************************')
 
-    print('\x1b[6;30;42m' + '~~~~~>>Almog&Dor debug: our training DataSetDir=%s  , LogDir=%s' % (FLAGS.datadir,FLAGS.logdir) + '\x1b[0m')
+    print_debug('our training DataSetDir=%s  , LogDir=%s' % (FLAGS.datadir,FLAGS.logdir))
 
     #vocab = Vocabulary.from_file(os.path.join(FLAGS.datadir, "1b_word_vocab.txt"))
     vocab = Vocabulary.from_file(os.path.join(FLAGS.datadir, "vocabulary.txt"))
@@ -42,12 +43,12 @@ def main(_):
                                               "ptb.train.txt"))
 
         trainlogdir=(FLAGS.logdir+str("/")+"train")#(FLAGS.logdir+str("\\")+"train")#os.path.join(FLAGS.logdir, "train")
-        print('\x1b[6;30;42m' + '~~~~~>>Almog&Dor debug: train log dir=%s' % (trainlogdir) + '\x1b[0m')
+        print_debug('train log dir=%s' % (trainlogdir))
 
         run_train(dataset, hps, trainlogdir, ps_device="/gpu:0")
-        print('\x1b[6;30;41m' + '~~>>Almog&Dor debug: Finished run_train !!!!!!!!!!!' + '\x1b[0m')
+        print_debug('Finished run_train !!!!!!!!!!!')
     elif FLAGS.mode.startswith("eval_"):
-        print('\x1b[6;30;42m' + '~~~~~>>Almog&Dor debug: eval mode' + '\x1b[0m')
+        print_debug('eval mode')
 
 
         # if FLAGS.mode.startswith("eval_train"):
@@ -59,7 +60,7 @@ def main(_):
         dataset = Dataset(vocab, os.path.join(FLAGS.datadir,
                                               "ptb.test.txt"), deterministic=True)
         run_eval(dataset, hps, FLAGS.logdir, FLAGS.mode, FLAGS.eval_steps)
-        print('\x1b[6;30;41m' + '~~>>Almog&Dor debug: Finished run_eval !!!!!!!!!!!' + '\x1b[0m')
+        print_debug('Finished run_eval !!!!!!!!!!!')
 
 
 if __name__ == "__main__":

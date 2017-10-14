@@ -5,7 +5,7 @@ from common import assign_to_gpu, average_grads, find_trainable_variables
 from hparams import HParams
 from tensorflow.contrib.rnn import LSTMCell
 from factorized_lstm_cells import GLSTMCell, ResidualWrapper, FLSTMCell
-
+from run_utils import print_debug
 
 class LM(object):
     def __init__(self, hps, mode="train", ps_device="/gpu:0"):
@@ -18,7 +18,7 @@ class LM(object):
         losses = []
         tower_grads = []
         #xs = tf.split(0, hps.num_gpus, self.x)
-        print("~~~~~>>Almog&Dor debug: creating LM model with %d GPUs" % (hps.num_gpus))
+        print_debug("creating LM model with %d GPUs" % (hps.num_gpus))
         xs = tf.split(self.x, hps.num_gpus, 0)
         #ys = tf.split(0, hps.num_gpus, self.y)
         ys = tf.split(self.y, hps.num_gpus, 0)
