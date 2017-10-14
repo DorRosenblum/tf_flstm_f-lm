@@ -90,7 +90,6 @@ class Dataset(object):
                 yield sentence
 
     def _iterate(self, sentences, batch_size, num_steps):
-        print('\x1b[6;30;42m' + '~~~~~>>Almog&Dor debug: ',sentences,'\x1b[0m')
 
         streams = [None] * batch_size
         x = np.zeros([batch_size, num_steps], np.int32)
@@ -107,6 +106,7 @@ class Dataset(object):
                     while tokens_filled < num_steps:
                         if streams[i] is None or len(streams[i]) <= 1:
                             streams[i] = next(sentences)
+                        print('\x1b[6;30;42m' + '~~~~~>>Almog&Dor debug: streams at ',i,'position: ', streams[i], '\x1b[0m')
                         num_tokens = min(len(streams[i]) - 1, num_steps - tokens_filled)
                         x[i, tokens_filled:tokens_filled+num_tokens] = streams[i][:num_tokens]
                         y[i, tokens_filled:tokens_filled + num_tokens] = streams[i][1:num_tokens+1]
