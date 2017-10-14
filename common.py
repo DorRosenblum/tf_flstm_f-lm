@@ -32,6 +32,7 @@ def load_from_checkpoint(saver, logdir):
         else:
             # Restores from checkpoint with relative path.
             saver.restore(sess, os.path.join(logdir, ckpt.model_checkpoint_path))
+        print_debug("Loaded checkpoint successfully")
         return True
     return False
 
