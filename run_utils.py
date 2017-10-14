@@ -161,8 +161,6 @@ def run_eval(dataset, hps, logdir, mode, num_eval_steps):
             for i, (x, y) in enumerate(data_iterator):
                 if i >= num_eval_steps and mode!="eval_full":
                     break
-                print_debug('Running eval loop: i=' + str(i) + ' x=' + str(x) + ' y=' + str(y))
-
                 #loss = sess.run(model.loss, {model.x: x, model.y: y, model.w: w})
                 loss = sess.run(model.loss, {model.x: x, model.y: y})
 
