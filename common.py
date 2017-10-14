@@ -23,6 +23,8 @@ def find_trainable_variables(key):
 
 def load_from_checkpoint(saver, logdir):
     sess = tf.get_default_session()
+    #make logdir absolute, relative cause problems
+    logdir = os.path.abspath(logdir)
     ckpt = tf.train.get_checkpoint_state(logdir)
     print_debug("Loading checkpoint from: " + ckpt.model_checkpoint_path + "logdir is: " + logdir)
     if ckpt and ckpt.model_checkpoint_path:
