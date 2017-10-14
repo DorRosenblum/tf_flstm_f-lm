@@ -3,6 +3,9 @@ import time
 import numpy as np
 import tensorflow as tf
 
+def print_debug(str):
+    if (tf.flags.FLAGS.debug_print):
+        print('\x1b[6;30;41m' + '~~>>Almog&Dor debug: ',str,'\x1b[0m')
 
 def assign_to_gpu(gpu=0, ps_dev="/device:CPU:0"):
     def _assign(op):

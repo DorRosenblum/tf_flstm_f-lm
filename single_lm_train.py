@@ -6,7 +6,8 @@ import os
 import tensorflow as tf
 from data_utils import Vocabulary, Dataset
 from language_model import LM
-from run_utils import run_train, run_eval, print_debug
+from run_utils import run_train, run_eval
+from common import print_debug
 
 tf.flags.DEFINE_string("logdir", "lm1b", "Logging directory.")
 #tf.flags.DEFINE_string("datadir", "1-billion-word-language-modeling-benchmark-master", "DataSet directory.")

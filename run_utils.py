@@ -6,11 +6,7 @@ import tensorflow as tf
 from tensorflow.python.client import timeline
 
 from language_model import LM
-from common import CheckpointLoader
-
-def print_debug(str):
-    if (tf.flags.FLAGS.debug_print):
-        print('\x1b[6;30;41m' + '~~>>Almog&Dor debug: ',str,'\x1b[0m')
+from common import CheckpointLoader,print_debug
 
 def run_train(dataset, hps, logdir, ps_device, task=0, master=""):
     with tf.variable_scope("model"):

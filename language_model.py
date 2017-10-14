@@ -1,11 +1,10 @@
 import tensorflow as tf
 
 from model_utils import sharded_variable, getdtype, variable_summaries
-from common import assign_to_gpu, average_grads, find_trainable_variables
+from common import assign_to_gpu, average_grads, find_trainable_variables,print_debug
 from hparams import HParams
 from tensorflow.contrib.rnn import LSTMCell
 from factorized_lstm_cells import GLSTMCell, ResidualWrapper, FLSTMCell
-from run_utils import print_debug
 
 class LM(object):
     def __init__(self, hps, mode="train", ps_device="/gpu:0"):
