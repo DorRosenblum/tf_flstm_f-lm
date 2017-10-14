@@ -24,6 +24,7 @@ def find_trainable_variables(key):
 def load_from_checkpoint(saver, logdir):
     sess = tf.get_default_session()
     ckpt = tf.train.get_checkpoint_state(logdir)
+    print_debug("Loading checkpoint from: " + ckpt.model_checkpoint_path)
     if ckpt and ckpt.model_checkpoint_path:
         if os.path.isabs(ckpt.model_checkpoint_path):
             # Restores from checkpoint with absolute path.
