@@ -48,7 +48,7 @@ def main(_):
 
         run_train(dataset, hps, trainlogdir, ps_device="/gpu:0")
         print_debug('Finished run_train !!!!!!!!!!!')
-    elif FLAGS.mode.startswith("eval_"):
+    elif FLAGS.mode.startswith("eval"):
         print_debug('eval mode')
 
 
