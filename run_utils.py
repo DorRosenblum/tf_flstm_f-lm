@@ -92,8 +92,8 @@ def run_train(dataset, hps, logdir, ps_device, task=0, master=""):
 
             local_step += 1
             if should_compute_summary:
-                print_debug('should_compute_summary!!! BUT WE DROPED THIS MODE TO SAVE MEMORY SPACE sv.should_stop()=%d, (time.time() - stime)=%.2fs, hps.max_time=%.2fs ' %(sv.should_stop(), (time.time() - stime), hps.max_time))
-                #sv.summary_computed(sess, fetched[-1]) #28GB is a bit too much
+                #print_debug('should_compute_summary!!! BUT WE DROPED THIS MODE TO SAVE MEMORY SPACE sv.should_stop()=%d, (time.time() - stime)=%.2fs, hps.max_time=%.2fs ' %(sv.should_stop(), (time.time() - stime), hps.max_time))
+                sv.summary_computed(sess, fetched[-1])
 
             if local_step < 10 or local_step % 20 == 0:
                 cur_time = time.time()
