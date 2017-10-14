@@ -147,7 +147,7 @@ def run_eval(dataset, hps, logdir, mode, num_eval_steps):
             print_debug('eval load_checkpoint chunk Loader done!')
 
             global_step = ckpt_loader.last_global_step
-            data_iterator = dataset.iterate_once(hps.batch_size * hps.num_gpus, hps.num_steps)
+            data_iterator = dataset.iterate_forever(hps.batch_size,hps.num_steps)
 
             print_debug('eval run local variables initalizer')
 
