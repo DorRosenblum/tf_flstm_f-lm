@@ -18,6 +18,7 @@ def pre_process(train_input_path,validation_input_path,test_input_path, output_p
     with open(train_input_path, 'r') as input_file:
         lines = [line.rstrip('\n') for line in input_file]
 
+    number_of_lines = len(lines)
     for line in lines:
         for word in line.split():
             if word in vocabulary:
@@ -44,7 +45,7 @@ def pre_process(train_input_path,validation_input_path,test_input_path, output_p
             output_file.write(output_line)
 
         # add the '<S>' artificial keyword (needed for the network to separate between sentences
-        output_line = '<S> 1'
+        output_line = '<S> '+str(number_of_lines)
         output_file.write(output_line)
 
     end_time = timer()
@@ -53,7 +54,7 @@ def pre_process(train_input_path,validation_input_path,test_input_path, output_p
     print('PreProcess finished building vocabulary time: ',end_time-start_time,'[sec]')
     print('Input: ', train_input_path)
     print('Output: ',output_path)
-    print('Vocabulary size: ',len(sorted_vocabulary))
+    print('Vocabulary size: ',len(sorted_vocabulary)+1)
     print('##################################################################\n')
 
 if __name__ == "__main__":

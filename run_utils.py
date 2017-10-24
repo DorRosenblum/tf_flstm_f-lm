@@ -196,3 +196,110 @@ def run_eval(dataset, hps, logdir, mode, num_eval_steps):
 
     print_debug('run_eval END OF WHILE session loop')
 
+
+def run_statistic(dataset, hps, logdir, ps_device, task=0, master=""):
+    with tf.variable_scope("model"):
+        print_debug('loading LM model')
+        model = LM(hps, "train", ps_device)
+    stime = time.time()
+    print("Current time: %s" % stime)
+    print("ALL VARIABLES")
+    for v in tf.all_variables():
+        print("%s %s %s %s" % (v.name, v.get_shape(), v.dtype, v.device))
+    print("TRAINABLE VARIABLES")
+    for v in tf.trainable_variables():
+        print("%s %s %s %s" % (v.name, v.get_shape(), v.dtype, v.device))
+    print("LOCAL VARIABLES")
+    for v in tf.local_variables():
+        print("%s %s %s %s" % (v.name, v.get_shape(), v.dtype, v.device))
+
+    sv = tf.train.Supervisor(is_chief=(task == 0),
+                             logdir=logdir,  # logdir=None, # logdir=logdir,
+                             summary_op=None,  # Automatic summaries don't work with placeholders.
+                             #global_step=model.global_step,
+                             save_summaries_secs=60 * hps.save_summary_every_min,
+                             save_model_secs=60 * hps.save_model_every_min)
+    # save_summaries_secs=30,
+    # save_model_secs=120 * 5)
+
+    # config = tf.ConfigProto(allow_soft_placement=True,
+    #                        intra_op_parallelism_threads=2,
+    #                        inter_op_parallelism_threads=20)
+    config = tf.ConfigProto(allow_soft_placement=True)
+    close_summary_writer = False
+    with sv.managed_session(master, config=config, start_standard_services=True, close_summary_writer=False) as sess:
+
+        # Slowly increase the number of workers during beginning of the training.
+        # while not sv.should_stop() and (time.time() - stime) < hps.max_time:
+        #    step = int(sess.run(model.global_step))
+        #    waiting_until_step = task * hps.num_delayed_steps
+        #    if step >= waiting_until_step:
+        #        break
+        #    else:
+        #        print("Current step is %d. Waiting until: %d" % (step, waiting_until_step))
+        #    time.sleep(20.0)
+
+        local_step = 0
+        prev_global_step = sess.run(model.global_step)
+        cur_global_step = 0
+        prev_time = time.time()
+        data_iterator = dataset.iterate_forever(hps.batch_size * hps.num_gpus, hps.num_steps)
+
+        print_debug(
+            'before looping model, sv.save_path=%s , sv.should_stop()=%d, (time.time() - stime)=%.2fs, hps.max_time=%.2fs ' % (
+            sv.save_path, sv.should_stop(), (time.time() - stime), hps.max_time))
+
+        while not sv.should_stop() and (time.time() - stime) < hps.max_time:
+            if (int(time.time()) - int(stime)) % 10 == 0:
+                print_debug(
+                    'While In looping model, sv.should_stop()=%d, (time.time() - stime)=%.2fs, hps.max_time=%.2fs ' % (
+                    sv.should_stop(), (time.time() - stime), hps.max_time))
+
+            fetches = [model.global_step, model.loss, model.train_op]
+            # Chief worker computes summaries every 100 steps.
+            should_compute_summary = (task == 0 and local_step % 100 == 0)
+            if should_compute_summary:
+                fetches += [model.summary_op]
+
+            # x, y, w = next(data_iterator)
+            x, y = next(data_iterator)
+            should_run_profiler = (hps.run_profiler and task == 0 and local_step % 1000 == 13)
+            if should_run_profiler:
+                run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
+                run_metadata = tf.RunMetadata()
+                # fetched = sess.run(fetches, {model.x: x, model.y: y, model.w: w},
+                fetched = sess.run(fetches, {model.x: x, model.y: y},
+                                   options=run_options, run_metadata=run_metadata)
+                # Create the Timeline object, and write it to a json
+                tl = timeline.Timeline(run_metadata.step_stats)
+                ctf = tl.generate_chrome_trace_format()
+                print("Running profiler")
+                with open(logdir + "/timeline.json", 'w') as f:
+                    f.write(ctf)
+                print("Finished profiling!")
+            else:
+                # fetched = sess.run(fetches, {model.x: x, model.y: y, model.w: w})
+                fetched = sess.run(fetches, {model.x: x, model.y: y})
+
+            cur_global_step = fetched[0]
+
+            local_step += 1
+            if should_compute_summary:
+                # print_debug('should_compute_summary!!! BUT WE DROPED THIS MODE TO SAVE MEMORY SPACE sv.should_stop()=%d, (time.time() - stime)=%.2fs, hps.max_time=%.2fs ' %(sv.should_stop(), (time.time() - stime), hps.max_time))
+                sv.summary_computed(sess, fetched[-1])
+
+            if local_step < 10 or local_step % 20 == 0:
+                cur_time = time.time()
+                num_words = hps.batch_size * hps.num_gpus * hps.num_steps
+                wps = (cur_global_step - prev_global_step) * num_words / (cur_time - prev_time)
+                prev_global_step = cur_global_step
+                print("Iteration %d, time = %.2fs, wps = %.0f, train loss = %.4f" % (
+                    cur_global_step, cur_time - prev_time, wps, fetched[1]))
+                prev_time = cur_time
+        # save last model
+        print_debug('Supervisor Begin Save after training period')
+        sv._saver.save(sess, sv.save_path, cur_global_step)
+        print_debug('Supervisor DONE Save after training period')
+
+    # close sv  with close summery flag
+    sv.stop(None, close_summary_writer)
