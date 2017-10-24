@@ -35,40 +35,46 @@ def main(_):
 
     #vocab = Vocabulary.from_file(os.path.join(FLAGS.datadir, "1b_word_vocab.txt"))
     vocab = Vocabulary.from_file(os.path.join(FLAGS.datadir, "vocabulary.txt"))
+    FLAGS.mode = "train"
+    for i in range(10):
+        print("Iteration ",i," phase: ",FLAGS.mode)
+        if FLAGS.mode == "train":
+            #hps.batch_size = 256
+            # dataset = Dataset(vocab, os.path.join(FLAGS.datadir,
+            #                                       "training-monolingual.tokenized.shuffled/*"))
+            dataset = Dataset(vocab, os.path.join(FLAGS.datadir,
+                                                  "ptb.train.txt"))
 
-    if FLAGS.mode == "train":
-        #hps.batch_size = 256
-        # dataset = Dataset(vocab, os.path.join(FLAGS.datadir,
-        #                                       "training-monolingual.tokenized.shuffled/*"))
-        dataset = Dataset(vocab, os.path.join(FLAGS.datadir,
-                                              "ptb.train.txt"))
+            trainlogdir=(FLAGS.logdir+str("/")+"train")#(FLAGS.logdir+str("\\")+"train")#os.path.join(FLAGS.logdir, "train")
+            print_debug('train log dir=%s' % (trainlogdir))
 
-        trainlogdir=(FLAGS.logdir+str("/")+"train")#(FLAGS.logdir+str("\\")+"train")#os.path.join(FLAGS.logdir, "train")
-        print_debug('train log dir=%s' % (trainlogdir))
-
-        run_train(dataset, hps, trainlogdir, ps_device="/gpu:0")
-        print_debug('Finished run_train !!!!!!!!!!!')
-    elif FLAGS.mode.startswith("eval"):
-        print_debug('eval mode')
+            run_train(dataset, hps, trainlogdir, ps_device="/gpu:0")
+            print_debug('Finished run_train !!!!!!!!!!!')
+        elif FLAGS.mode.startswith("eval"):
+            print_debug('eval mode')
 
 
-        # if FLAGS.mode.startswith("eval_train"):
-        #     data_dir = os.path.join(FLAGS.datadir, "training-monolingual.tokenized.shuffled/*")
-        # elif FLAGS.mode.startswith("eval_full"):
-        #     data_dir = os.path.join(FLAGS.datadir, "heldout-monolingual.tokenized.shuffled/*")
-        # else:
-        #     data_dir = os.path.join(FLAGS.datadir, "heldout-monolingual.tokenized.shuffled/news.en.heldout-00000-of-00050")
-        dataset = Dataset(vocab, os.path.join(FLAGS.datadir,
-                                              "ptb.test.txt"), deterministic=True)
-        run_eval(dataset, hps, FLAGS.logdir, FLAGS.mode, FLAGS.eval_steps)
-        print_debug('Finished run_eval !!!!!!!!!!!')
-    elif FLAGS.mode.startswith("statistic"):
-        train_dataset = Dataset(vocab, os.path.join(FLAGS.datadir,
-                                              "ptb.train.txt"))
-        log_suffix = "statistic_groups_" + str(hps.num_of_groups) + "_fact_" + str(hps.fact_size)
-        print_debug("Statistic mode log suffix: " + log_suffix)
-        trainlogdir=(FLAGS.logdir+str("/")+"train")#(FLAGS.logdir+str("\\")+"train")#os.path.join(FLAGS.logdir, "train")
-        run_statistic(dataset, hps, trainlogdir, ps_device="/gpu:0")
+            # if FLAGS.mode.startswith("eval_train"):
+            #     data_dir = os.path.join(FLAGS.datadir, "training-monolingual.tokenized.shuffled/*")
+            # elif FLAGS.mode.startswith("eval_full"):
+            #     data_dir = os.path.join(FLAGS.datadir, "heldout-monolingual.tokenized.shuffled/*")
+            # else:
+            #     data_dir = os.path.join(FLAGS.datadir, "heldout-monolingual.tokenized.shuffled/news.en.heldout-00000-of-00050")
+            dataset = Dataset(vocab, os.path.join(FLAGS.datadir,
+                                                  "ptb.test.txt"), deterministic=True)
+            run_eval(dataset, hps, FLAGS.logdir, FLAGS.mode, FLAGS.eval_steps)
+            print_debug('Finished run_eval !!!!!!!!!!!')
+        elif FLAGS.mode.startswith("statistic"):
+            train_dataset = Dataset(vocab, os.path.join(FLAGS.datadir,
+                                                  "ptb.train.txt"))
+            log_suffix = "statistic_groups_" + str(hps.num_of_groups) + "_fact_" + str(hps.fact_size)
+            print_debug("Statistic mode log suffix: " + log_suffix)
+            trainlogdir=(FLAGS.logdir+str("/")+"train")#(FLAGS.logdir+str("\\")+"train")#os.path.join(FLAGS.logdir, "train")
+            run_statistic(dataset, hps, trainlogdir, ps_device="/gpu:0")
 
+        if FLAGS.mode =="train":
+            FLAGS.mode = "eval"
+        else:
+            FLAGS.mode ="train"
 if __name__ == "__main__":
     tf.app.run()
