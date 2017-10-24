@@ -137,6 +137,6 @@ class Dataset(object):
                 for file_name in file_patterns:
                     yield file_name
                 print('Done epoch: %s' % epoch_num)
-                epoch_num += 1                
+                epoch_num += 1
         for value in self._iterate(self._sentence_stream(file_stream()), batch_size, num_steps):
             yield value

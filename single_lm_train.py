@@ -73,7 +73,7 @@ def main(_):
             run_statistic(dataset, hps, trainlogdir, ps_device="/gpu:0")
 
         if FLAGS.mode =="train":
-            FLAGS.mode = "eval"
+            FLAGS.mode = "eval_full"
         else:
             FLAGS.mode ="train"
 if __name__ == "__main__":

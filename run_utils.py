@@ -110,7 +110,8 @@ def run_train(dataset, hps, logdir, ps_device, task=0, master=""):
 
     # close sv  with close summery flag 
     sv.stop(None, close_summary_writer)
-
+    sess.close()
+    tf.reset_default_graph()
 
 
 def run_eval(dataset, hps, logdir, mode, num_eval_steps):
@@ -148,7 +149,7 @@ def run_eval(dataset, hps, logdir, mode, num_eval_steps):
 
             global_step = ckpt_loader.last_global_step
             if mode == "eval_full":
-                data_iterator = dataset.iterate_forever(hps.batch_size,hps.num_steps)
+                data_iterator = dataset.iterate_forever(hps.batch_size*hps.num_gpus,hps.num_steps)
             else:
                 data_iterator = dataset.iterate_once(hps.batch_size*hps.num_gpus,hps.num_steps)
 
@@ -173,9 +174,9 @@ def run_eval(dataset, hps, logdir, mode, num_eval_steps):
                 loss_den += 1 # ???
                 #loss_den += w.mean()
                 loss = loss_nom / loss_den
-                sys.stdout.write("%d: %.3f (%.3f) ... " % (i, loss, np.exp(loss)))
-                sys.stdout.flush()
-            sys.stdout.write("\n")
+                #sys.stdout.write("%d: %.3f (%.3f) ... " % (i, loss, np.exp(loss)))
+                #sys.stdout.flush()
+                #sys.stdout.write("\n")
 
 
             log_perplexity = loss_nom / loss_den
@@ -195,7 +196,8 @@ def run_eval(dataset, hps, logdir, mode, num_eval_steps):
         print_debug('run_eval END OF WHILE loader loop')
 
     print_debug('run_eval END OF WHILE session loop')
-
+    sess.close()
+    tf.reset_default_graph()
 
 def run_statistic(dataset, hps, logdir, ps_device, task=0, master=""):
     with tf.variable_scope("model"):
