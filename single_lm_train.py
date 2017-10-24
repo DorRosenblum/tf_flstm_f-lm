@@ -64,13 +64,6 @@ def main(_):
                                                   "ptb.test.txt"), deterministic=True)
             run_eval(dataset, hps, FLAGS.logdir, FLAGS.mode, FLAGS.eval_steps)
             print_debug('Finished run_eval !!!!!!!!!!!')
-        elif FLAGS.mode.startswith("statistic"):
-            train_dataset = Dataset(vocab, os.path.join(FLAGS.datadir,
-                                                  "ptb.train.txt"))
-            log_suffix = "statistic_groups_" + str(hps.num_of_groups) + "_fact_" + str(hps.fact_size)
-            print_debug("Statistic mode log suffix: " + log_suffix)
-            trainlogdir=(FLAGS.logdir+str("/")+"train")#(FLAGS.logdir+str("\\")+"train")#os.path.join(FLAGS.logdir, "train")
-            run_statistic(dataset, hps, trainlogdir, ps_device="/gpu:0")
 
         if FLAGS.mode =="train":
             FLAGS.mode = "eval_full"

@@ -1,7 +1,56 @@
 import os
 import time
-import numpy as np
+import csv
 import tensorflow as tf
+
+
+class timer:
+
+    def __init__(self):
+        self._time = time.time()
+
+    def reset(self):
+        self._time = time.time()
+
+    def get_time(self):
+        return time.time() - self._time
+
+class statistics:
+    _TRAIN_ITERATION_TIME_LOSS = []
+    _EVAL_TIME_VS_LOSS = []
+
+    _TRAIN_TIMER = timer()
+    _EVAL_TIMER = timer()
+
+    @staticmethod
+    def add_train_data(iteration,loss):
+        statistics._TRAIN_ITERATION_TIME_LOSS.append(
+            [iteration, statistics._TRAIN_TIMER.get_time(), loss])
+
+    @staticmethod
+    def add_eval_data(loss):
+        statistics._EVAL_TIME_VS_LOSS.append(
+            [statistics._EVAL_TIMER.get_time(), loss])
+
+    @staticmethod
+    def reset_timers():
+        statistics._TRAIN_TIMER.reset()
+        statistics._EVAL_TIMER.reset()
+
+    @staticmethod
+    def export(base_name):
+        train_file_name = base_name + "_train.csv"
+        eval_file_name = base_name + "_eval.csv"
+        with open(train_file_name, "w") as output_f:
+            writer = csv.writer(output_f)
+            writer.writerows(statistics._TRAIN_ITERATION_TIME_LOSS)
+
+        with open(eval_file_name,"w") as output_f:
+            writer = csv.writer(output_f)
+            writer.writerows(statistics._EVAL_TIME_VS_LOSS)
+
+        print("Train data exported to: ", train_file_name)
+        print("Eval data exported to: ", eval_file_name)
 
 def print_debug(str):
     if (tf.flags.FLAGS.debug_print):
